@@ -1,0 +1,138 @@
+---
+
+# Install Open CV Dependencies
+- name: Install developer tools
+  apt: name="{{ item }}" state=latest
+  with_items:
+   - build-essential
+   - git
+   - cmake
+   - pkg-config
+
+- name: Install Image I/O packages
+  apt: name="{{ item }}" state=latest
+  with_items:
+   - libjpeg-dev
+   - libtiff5-dev
+   - libjasper-dev
+   - libpng12-dev
+   
+- name: Install Video I/O packages
+  apt: name="{{ item }}" state=latest
+  with_items:
+   - libavcodec-dev
+   - libavformat-dev
+   - libswscale-dev
+   - libv4l-dev
+   - libxvidcore-dev
+   - libx264-dev
+   
+- name: Install libgtk2.0-dev (GUI dev package - optional)
+  apt: name=libgtk2.0-dev state=latest
+  when: install_libgtk=="yes"
+
+- name: Install optimisations dependencies
+  apt: name="{{ item }}"
+  with_items:
+   - libatlas-base-dev
+   - gfortran
+   
+- name: Install Python 2.7 and 3 header files
+  apt: name="{{ item }}"
+  with_items:
+   - python2.7-dev
+   - python3-dev
+   
+
+# Download Open CV components
+- name: Download opencv
+  get_url:
+    url: "{{ opencv_base_url }}/{{ opencv_version }}.zip"
+    dest: "{{ install_path }}/opencv.zip"
+    mode: 0775
+  
+- name: Download opencv contrib - for full install (TODO Do we need this?)
+  get_url:
+    url: "{{ opencv_contrib_base_url }}/{{ opencv_version }}.zip"
+    dest: "{{ install_path }}/opencv_contrib.zip"
+    mode: 0775
+
+- name: Unzip opencv download
+  unarchive:
+    src: "{{ install_path }}/opencv.zip"
+    dest: "{{ install_path }}"
+    #remote_src: yes    # This is for ansible > 2.2
+    copy: no
+    creates: "{{ install_path }}/opencv-{{ opencv_version }}"
+
+- name: Unzip opencv contrib download
+  unarchive:
+    src: "{{ install_path }}/opencv_contrib.zip"
+    dest: "{{ install_path }}"
+    #remote_src: yes    # This is for ansible > 2.2
+    copy: no
+    creates: "{{ install_path }}/opencv_contrib-{{ opencv_version }}"
+
+
+# Install Python components
+- name: Install python pip
+  apt: name=python-pip state=latest
+
+- name: Install numpy
+  pip: name=numpy state=latest
+
+
+# Set facts and create directory for make/make install.
+- name: Identify the opencv root folders
+  set_fact:
+    opencv_path: "{{ install_path }}/opencv-{{ opencv_version }}"
+    opencv_contrib_path: "{{ install_path }}/opencv_contrib-{{ opencv_version }}"
+  tags: make
+  
+- name: Create a build directory
+  file: path="{{ opencv_path }}/build" state=directory mode=0755
+  tags: make
+  
+  
+# Compile OpenCV
+- name: Don't include the examples
+  set_fact:
+    install_c_examples: "OFF"
+    install_py_examples: "OFF"
+    build_examples: "OFF"
+  when: "'{{ opencv_version }}'=='3.1.0'"
+  tags: make
+  
+- name: Cmake OpenCV
+  command: cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_C_EXAMPLES={{ install_c_examples }} -D INSTALL_PYTHON_EXAMPLES={{ install_py_examples }} -D OPENCV_EXTRA_MODULES_PATH={{ opencv_contrib_path }}/opencv_contrib/modules -D BUILD_EXAMPLES={{ build_examples }} ..
+  args:
+    chdir: "{{ opencv_path }}/build"
+  tags: make
+  
+- name: make OpenCV (go make a cuppa)
+  command: make
+  args:
+    chdir: "{{ opencv_path }}/build"
+  tags: make
+  
+- name: make install OpenCV (and another...) #Todo- could add -j4 for quadcore raspberry pi2
+  command: make install
+  args:
+    chdir: "{{ opencv_path }}/build"
+  tags: make
+  
+
+# Validate install
+- name: Check open cv import
+  command: python -c "import cv2"
+  register: cv_import_response
+  tags: make
+
+# Validate open cv version
+
+- name: Validate cv version
+  command: python -c "import cv2; print cv2.__version__"
+  register: opencv_version_python
+- debug: "Installed OpenCV version  {{ opencv_version_python }}"
+
+

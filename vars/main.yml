@@ -1,0 +1,22 @@
+
+# Update apt and then upgrade too
+run_upgrade: no
+
+# From the blog:
+# We need to install the GTK development library so we can compile the highgui
+# sub-module of OpenCV, which allows us to display images to our screen and 
+# build simple GUI interfaces. Not required for my use case, but make this
+# variable yes to install this.
+install_libgtk: no
+
+# Open CV download urls
+# These must match.
+opencv_base_url: https://github.com/Itseez/opencv/archive/
+opencv_contrib_base_url: https://github.com/Itseez/opencv_contrib/archive/
+opencv_version: 3.0.0
+install_path: /opt
+
+# Arguments during the open cv build step
+install_c_examples: "OFF"
+install_py_examples: "OFF"
+build_examples: "OFF"
