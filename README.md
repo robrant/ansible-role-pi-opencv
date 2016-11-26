@@ -7,7 +7,7 @@ Ansible role for installing opencv on a raspberry pi with Python bindings.
 
 Drop into your own playbook using something similar to:
 
-  - hosts: pis
-    roles:
-      - opencv-python
-    tags: opencv
+    - hosts: pis
+      roles:
+        - opencv-python
+      tags: opencv
