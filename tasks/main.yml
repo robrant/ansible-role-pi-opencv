@@ -1,5 +1,11 @@
 ---
 
+# Upgrade apt
+- name: upgrade apt system
+  apt: upgrade=yes update_cache=yes
+  tags: update_os
+  when: run_upgrade == true
+
 # Install Open CV Dependencies
 - name: Install developer tools
   apt: name="{{ item }}" state=latest
@@ -8,6 +14,7 @@
    - git
    - cmake
    - pkg-config
+  tags: opencv_dependencies
 
 - name: Install Image I/O packages
   apt: name="{{ item }}" state=latest
@@ -16,7 +23,8 @@
    - libtiff5-dev
    - libjasper-dev
    - libpng12-dev
-   
+  tags: opencv_dependencies
+
 - name: Install Video I/O packages
   apt: name="{{ item }}" state=latest
   with_items:
@@ -26,23 +34,26 @@
    - libv4l-dev
    - libxvidcore-dev
    - libx264-dev
-   
+  tags: opencv_dependencies
+
 - name: Install libgtk2.0-dev (GUI dev package - optional)
   apt: name=libgtk2.0-dev state=latest
-  when: install_libgtk=="yes"
+  when: install_libgtk == true
+  tags: opencv_dependencies
 
 - name: Install optimisations dependencies
   apt: name="{{ item }}"
   with_items:
    - libatlas-base-dev
    - gfortran
-   
+  tags: opencv_dependencies
+
 - name: Install Python 2.7 and 3 header files
   apt: name="{{ item }}"
   with_items:
    - python2.7-dev
    - python3-dev
-   
+  tags: opencv_python_dev
 
 # Download Open CV components
 - name: Download opencv
@@ -50,12 +61,14 @@
     url: "{{ opencv_base_url }}/{{ opencv_version }}.zip"
     dest: "{{ install_path }}/opencv.zip"
     mode: 0775
-  
+  tags: opencv_download_unzip
+
 - name: Download opencv contrib - for full install (TODO Do we need this?)
   get_url:
     url: "{{ opencv_contrib_base_url }}/{{ opencv_version }}.zip"
     dest: "{{ install_path }}/opencv_contrib.zip"
     mode: 0775
+  tags: opencv_download_unzip
 
 - name: Unzip opencv download
   unarchive:
@@ -64,6 +77,7 @@
     #remote_src: yes    # This is for ansible > 2.2
     copy: no
     creates: "{{ install_path }}/opencv-{{ opencv_version }}"
+  tags: opencv_download_unzip
 
 - name: Unzip opencv contrib download
   unarchive:
@@ -72,28 +86,28 @@
     #remote_src: yes    # This is for ansible > 2.2
     copy: no
     creates: "{{ install_path }}/opencv_contrib-{{ opencv_version }}"
-
+  tags: opencv_download_unzip
 
 # Install Python components
 - name: Install python pip
   apt: name=python-pip state=latest
+  tags: opencv_python_dependencies
 
 - name: Install numpy
   pip: name=numpy state=latest
-
+  tags: opencv_python_dependencies
 
 # Set facts and create directory for make/make install.
 - name: Identify the opencv root folders
   set_fact:
     opencv_path: "{{ install_path }}/opencv-{{ opencv_version }}"
     opencv_contrib_path: "{{ install_path }}/opencv_contrib-{{ opencv_version }}"
-  tags: make
-  
+  tags: opencv_make_and_install
+
 - name: Create a build directory
   file: path="{{ opencv_path }}/build" state=directory mode=0755
-  tags: make
-  
-  
+  tags: opencv_make_and_install
+
 # Compile OpenCV
 - name: Don't include the examples
   set_fact:
@@ -101,38 +115,38 @@
     install_py_examples: "OFF"
     build_examples: "OFF"
   when: "'{{ opencv_version }}'=='3.1.0'"
-  tags: make
-  
+  tags: opencv_make_and_install
+
 - name: Cmake OpenCV
   command: cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_C_EXAMPLES={{ install_c_examples }} -D INSTALL_PYTHON_EXAMPLES={{ install_py_examples }} -D OPENCV_EXTRA_MODULES_PATH={{ opencv_contrib_path }}/opencv_contrib/modules -D BUILD_EXAMPLES={{ build_examples }} ..
   args:
     chdir: "{{ opencv_path }}/build"
-  tags: make
-  
+  tags: opencv_make_and_install
+
 - name: make OpenCV (go make a cuppa)
   command: make
   args:
     chdir: "{{ opencv_path }}/build"
-  tags: make
-  
+  tags: opencv_make_and_install
+
 - name: make install OpenCV (and another...) #Todo- could add -j4 for quadcore raspberry pi2
   command: make install
   args:
     chdir: "{{ opencv_path }}/build"
-  tags: make
-  
+  tags: opencv_make_and_install
+
 
 # Validate install
 - name: Check open cv import
   command: python -c "import cv2"
   register: cv_import_response
-  tags: make
+  tags: test_opencv_install
 
 # Validate open cv version
-
 - name: Validate cv version
   command: python -c "import cv2; print cv2.__version__"
   register: opencv_version_python
+  tags: test_opencv_install
+
 - debug: "Installed OpenCV version  {{ opencv_version_python }}"
-
-
+  tags: test_opencv_install
