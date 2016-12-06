@@ -5,6 +5,8 @@ Install Open CV with Python Bindings on a Raspberry Pi.
 
 Ansible role for installing opencv on a raspberry pi with Python bindings.
 
+_I pulled this out of another playbook, but haven't yet had a chance to test it on a clean Pi image. As a result, it may not work, but will soon_
+
 # Dependencies
 
 * Patience and a little time.
