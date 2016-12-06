@@ -1,13 +1,13 @@
 
 # Update apt and then upgrade too
-run_upgrade: no
+run_upgrade: false
 
 # From the blog:
 # We need to install the GTK development library so we can compile the highgui
-# sub-module of OpenCV, which allows us to display images to our screen and 
+# sub-module of OpenCV, which allows us to display images to our screen and
 # build simple GUI interfaces. Not required for my use case, but make this
 # variable yes to install this.
-install_libgtk: no
+install_libgtk: false
 
 # Open CV download urls
 # These must match.
