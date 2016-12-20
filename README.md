@@ -20,7 +20,11 @@ Drop into your own playbook using something similar to:
     - hosts: pis
       roles:
         - opencv-python
-      tags: opencv
+      become: true
+      tags: opencv-python
+
+## Example
+
 
 ## Tags
 
