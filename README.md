@@ -1,16 +1,13 @@
 
-Install Open CV with Python Bindings on a Raspberry Pi.
-
 # About
 
 Ansible role for installing opencv on a raspberry pi with Python bindings.
 
-_I pulled this out of another playbook, but haven't yet had a chance to test it on a clean Pi image. As a result, it may not work, but will soon_
-
 # Dependencies
 
-* Patience and a little time.
-* An internet connection.
+* Patience and a little time (> 10 hours for a Pi B+).
+* Your Pi will need to be connected to the Internet.
+
 * For info - this play downloads and installs a lot of additional libraries from the apt repo. The list is broken into 4 tasks in `./tasks/main.yml`
 
 # Usage
@@ -23,8 +20,9 @@ Drop into your own playbook using something similar to:
       become: true
       tags: opencv-python
 
-## Example
+## Example Playbook
 
+[This repo](https://github.com/robrant/ansible-role-pi-opencv-example-playbook.git) provides an example playbook that incorporates and runs this role.
 
 ## Tags
 
@@ -55,11 +53,12 @@ Tags can be found in `./tasks/main.yml`.
 
 # Credit
 
-The role is based on the great manual instructions provided on the [pyelasticsearch blog](http://www.pyimagesearch.com/2015/10/26/how-to-install-opencv-3-on-raspbian-jessie/).
+The role is based on the great instructions provided on the [pyelasticsearch blog](http://www.pyimagesearch.com/2015/10/26/how-to-install-opencv-3-on-raspbian-jessie/).
+Hat Tip to Adrian.
 
 # Works On
 
-Tested on Raspbian Jessie (November 2016) and Raspbian Jessie minimal image running on a Raspberry Pi B+. It assumes you've done stuff like:
+Tested on Raspbian Jessie (December 2016) and Raspbian Jessie minimal image running on a Raspberry Pi B+ (one core). It assumes you've done stuff like:
 
   * Expanded the filesystem.
   * Enabled the Pi to handle SSH (as of November 2016, no longer the default).
