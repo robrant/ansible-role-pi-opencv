@@ -148,5 +148,5 @@
   register: opencv_version_python
   tags: test_opencv_install
 
-- debug: "Installed OpenCV version  {{ opencv_version_python }}"
+- debug: msg="Installed OpenCV version  {{ opencv_version_python }}"
   tags: test_opencv_install
